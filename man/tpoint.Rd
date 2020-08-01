@@ -4,7 +4,7 @@
 \alias{tpoint}
 \title{T-Point thresholding}
 \usage{
-tpoint(ints, breaks = 500, diagnosis = FALSE)
+tpoint(ints, breaks = 500, diagnosis = FALSE, plot = FALSE)
 }
 \arguments{
 \item{ints}{numeric vector of intensities.}
@@ -12,6 +12,8 @@ tpoint(ints, breaks = 500, diagnosis = FALSE)
 \item{breaks}{numeric, number of bins in histogram.}
 
 \item{diagnosis}{logical, return set of internal values additonal to threshold}
+
+\item{plot}{logical, show plot for diagnosis.}
 }
 \value{
 numeric threshold.

@@ -9,7 +9,3 @@
 "NLGF67w_mouse1_rep1_coord"
 
 
-#' Processed and reduced spectra from a NLGF mouse at age 67 weeks
-#'
-#' @format list of \code{MALDIquant::MassSpectrum} from NLGF mouse at 67 of weeks from Enzlein, et. al. 2020. Spectra were reduced (mz 4k-4.5k, 25% data points) and processed (TIC norm, SavitzkyGolay smoothed, baseline removed (TopHat))
-"NLGF67w_mouse1_rep1_spec"

@@ -33,7 +33,7 @@ point2LineDist      = function(p1, p2, x) {
 #'
 #' @param intensities Vector of intensities.
 #' @param breaks            Number of bins of the histogram.
-#' @param showPlot          Plots the internally generated plot.
+#' @param plot          Plots the internally generated plot.
 #'
 #' @return
 #' Threshold value (see description)

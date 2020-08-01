@@ -7,8 +7,7 @@
 #' @return
 #' vector of indicies refering to the spectra in the MALDIquant spectra list used to construct the ion images used.
 #' @export
-#'
-#' @examples
+
 get_IdxFromID <- function(pp, ID, mzValue = "unified") {
   mzValue <- as.character(mzValue)
   if(length(mzValue) > 1) {

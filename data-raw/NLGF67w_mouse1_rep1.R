@@ -20,12 +20,12 @@ NLGF67w_mouse1_rep1_spec <- MALDIquant::smoothIntensity(NLGF67w_mouse1_rep1_spec
                                     halfWindowSize = 2) # small halfWindowSize needed as number of points per spectra reduced for smaller example datasets
 NLGF67w_mouse1_rep1_spec <- MALDIquant::removeBaseline(NLGF67w_mouse1_rep1_spec,
                                    method = "TopHat")
+NLGF67w_mouse1_rep1_coord <- MALDIquant::coordinates(NLGF67w_mouse1_rep1_spec)
 NLGF67w_mouse1_rep1 <- MALDIquant::msiSlices(NLGF67w_mouse1_rep1_spec,
                                              center = c(4059.9,
                                                         4159.1,
                                                         4442.6),
                                              tolerance = 5)
-
 
 # tidy up
 file.remove("NLGF_Prot_NLGF1.imzML")
