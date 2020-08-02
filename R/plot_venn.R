@@ -7,10 +7,11 @@
 #' @param method   character, if set to "plaque" the Venn diagram will be based on overlapping signals per plaque. If set to "pixel" then it will be pixel-wise.
 #' @param relative logical, if set to false the number of plaques is returned instead of the percentage.
 #'
+#'
 #' @export
 plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("plaque", "pixel"), relative = TRUE) {
   method = match.arg(method)
-  if(!requireNamespace(Vennerable)) {
+  if(!requireNamespace("Vennerable")) {
     stop("To use this function the package 'Vennerable' is needed.\n
          Install it using devtools::install_github('js229/Vennerable')")
   }
@@ -34,7 +35,7 @@ plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("p
                unique() %>%
                na.omit() %>%
                sort() %>%
-               .data$.[-1]
+               .[-1]
            },
            "pixel" = {
              PlaqueIDs_venn[[i]] <- unlist(pp[[mzIdx[i]]]$spectraIdx)
@@ -55,5 +56,5 @@ plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("p
   if(!plot) {
     return(venn)
   }
-  plot(venn)
+  Vennerable::plot(venn)
 }

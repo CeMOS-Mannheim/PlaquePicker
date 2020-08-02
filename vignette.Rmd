@@ -1,18 +1,27 @@
 ---
 title: "PLAQUE PICKER Example"
 output:
+  pdf_document: default
+  html_notebook: default
   html_document:
     df_print: paged
-  html_notebook: default
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(dpi=600,fig.width=8)
 ```
 
+
+# Introduction
+
+This document gives an overview about the core functionality of the plaquePicker-package. The general idea of plaquePicker is to analyze sparsely-distributed signals in an MSI-data set as single objects.
+In our example we did that for mouse models of Alzheimer's disease were we analyzed the data on the single Amyloid (Abeta) plaque level.
+We defined a plaque as containing at least one Abeta species in at least one pixel. For that a thresholding on the single ion images level was sufficient. Of course also other - more complex - methods of feature selection would be possible. Any feature selection method that leads to a binary image would also work.
+
+# Data preprocessing
+
 Load needed libraries
-```{r, echo=FALSE}
+```{r}
 suppressPackageStartupMessages({
   library(PlaquePicker)
   library(MALDIquant)        # general MS functions
@@ -34,8 +43,8 @@ suppressPackageStartupMessages({
   library(Vennerable)})
 ```
 
-This package comes with a preprared set of ion images that can directly be used by the plaquePicker-function. Nevertheless, here we show how we prepared this example data: 
-```{r, eval = TRUE, echo=FALSE}
+This package comes with a prepared set of ion images that can directly be used by the plaquePicker-function. Nevertheless, here we show how we prepared this example data: 
+```{r, eval = TRUE}
 # unzip spectra
 unzip("data-raw/NLGF67w_mouse1_rep1.zip")
 
@@ -49,13 +58,13 @@ file.remove("NLGF_Prot_NLGF1.ibd")
 
 ```
 
-Preprocess spectra using MALDIquant functions: Normalize, smooth, remove baseline. Compute average spectrum and plot it to get an overview of the dataset. 
+Preprocess spectra using MALDIquant functions: Normalize, smooth, remove baseline. 
 ```{r, warning=FALSE, eval=FALSE}
 spec <- calibrateIntensity(spec,
                            method = "TIC")
 
 # small halfWindowSize needed as number of points 
-# per spectra reduced for smaller example datasets
+# per spectra reduced for smaller example data sets
 spec <- smoothIntensity(spec,
                         method = "SavitzkyGolay",
                         halfWindowSize = 2) 
@@ -66,10 +75,13 @@ spec <- removeBaseline(spec,
 
 ```
 
+# General overview of the data set
+
+Compute average spectrum and plot it to get an overview of the dataset. 
 ```{r}
 avgSpec <- averageMassSpectra(spec)
 
-# shorten filepath (for plotting reasons only)
+# shorten file path (for plotting reasons only)
 avgSpec@metaData$file <- basename(avgSpec@metaData$file)
 
 plot(avgSpec, ylab = "Intensity [a.u.]")
@@ -83,9 +95,9 @@ We observe a strong peak at m/z 4059 (Ab1-38Arc), and two smaller peaks at m/z 4
 Next we extract ion images of interest.
 ```{r}
 ionImages <- msiSlices(spec, 
-                       center = c(4059,
-                                  4160,
-                                  4442),
+                       center = c(4059.9,
+                                  4159.1,
+                                  4442.6),
                        tolerance = 5)
 ```
 
@@ -110,9 +122,11 @@ image(qcor(ionImages[,,3], 0.9995),
 title("Ab1-42Arc", line = -2)
 ```
 
+# Thresholding and general principle
+
 Next we take a look at the histogram of intensities for Ab1-38Arc.
 We observe a unimodal distribution. Most of the pixels have a intensity at the level of noise and there are only a few above that.
-We use the tpoint method to find a threshold. This method fits to lines to the histogram, one for the ascending and one for the decending part. Both will of course have error. The intensity value where the sum of this two error is the lowest will be defined as threshold (see second plot).
+We use the tpoint method to find a threshold. This method fits to lines to the histogram, one for the ascending and one for the descending part. Both will of course have error. The intensity value where the sum of this two error is the lowest will be defined as threshold (see second plot).
 For more information check Coudray, Nicolas; Buessler, Urban (2010). "Robust threshold estimation for images with unimodal histograms". Pattern Recognition Letters. 31 (9): 1010–1019. doi:10.1016/j.patrec.2009
 ```{r}
 hist(ionImages[,,1], 
@@ -121,7 +135,7 @@ hist(ionImages[,,1],
      main = "Histogram of Ab1-38Arc intensity")
 thresh_Ab38 <- tpoint(ionImages[,,1], plot = TRUE)
 ```
-If we apply this threshold to the corresponding ion image we get a binized image.
+If we apply this threshold to the corresponding ion image we get a binarized image.
 ```{r}
 bin <- ifelse(test = thresh_Ab38 < as.vector(ionImages[,,1]),
               yes = 1,
@@ -145,23 +159,25 @@ image(binMat,
 title("Ab1-38Arc binarized", line = -1)
 ```
 Using this image we could apply raster::clump to perform connected component labeling and assign each individual plaque an ID. Or we could first compute the binary pictures of all ion images of interest, combine them and then apply connected component labeling.
-Following the same principle as shown above we now apply the plaquePicker-function to the ion images. In additon to the ion images this function also needs the coordinates of the dataset so we have to also extract them.
-Note that there are two other thresholding methods implemented. If you do not wish to apply any thresholding but rather use an ion image of data that was alread peak picked set method to "peak". Now each pixel with a intensity > 0 ("signal-bearing-pixel") will be considered for the following processing.
+Following the same principle as shown above we now apply the plaquePicker-function to the ion images. In addition to the ion images this function also needs the coordinates of the data set so we have to also extract them.
+Note that there are two other thresholding methods implemented. If you do not wish to apply any thresholding but rather use an ion image of data that was already peak picked set method to "peak". Now each pixel with a intensity > 0 ("signal-bearing-pixel") will be considered for the following processing. 
 ```{r, warning=FALSE}
 coord <- coordinates(spec)
 pp <- plaquePicker(ionImages = ionImages, 
                    coord = coord,
                    method = "tpoint")
 ```
-Now that we have the dataset structed in a way suitable for single-object analysis we can perform some basic tasks. For example, lets take all spectra assosiated with Abeta signals and caluclate an average spectrum of plaques and compare it to the average spectrum of the whole dataset we computed above. We see that as dissused above, the Abeta signals were underrepresented in the orginal average spectrum as they only appear in a small number of the total pixels.
-```{r, echo=FALSE}
-# first extract the MALDIquant indicies assosiated with plaque
+
+# Single object analysis
+Now that we have the data set structured in a way suitable for single-object analysis we can perform some basic tasks. For example, lets take all spectra associated with Abeta signals and calculate an average spectrum of plaques and compare it to the average spectrum of the whole data set we computed above. We see that as discussed above, the Abeta signals were underrepresented in the original average spectrum as they only appear in a small number of the total pixels.
+```{r}
+# first extract the MALDIquant indicies associated with plaque
 idx <- get_IdxFromID(pp, ID = NA) # setting ID to NA will extract all IDs instead of specific IDs
 
-# compute average spectrum of plaque assosiated pixels
+# compute average spectrum of plaque associated pixels
 plaqueAvg <- averageMassSpectra(spec[idx]) 
 
-# shorten filepath (for plotting reasons only)
+# shorten file path (for plotting reasons only)
 plaqueAvg@metaData$file <- basename(plaqueAvg@metaData$file)
 
 plot(plaqueAvg, 
@@ -178,61 +194,96 @@ legend("right",
 ```
 
 In addition to the unified results, the pp object has an entry containing the spectra indices of each individual object. 
-Using the unified connected component labeled matrix (uniComp) in conjunction with the binary images for each ion image of interest we extract the plaques that co-localize with each other. This enables us to assess the plaques regarding their composition.
+Using the unified connected component labeled matrix (uniComp) in conjunction with the binary images for each ion image (binMat) of interest we extract the plaques that co-localize with each other. This enables us to assess the plaques regarding their composition.
 
+We can use this data to analysis the general qualitative composition of plaques using a Venn diagram. 
+Now we can quantify the visual impression we had when we took a look at the ion images above: Ab1-38Arc and Ab1-39Arc are highly co-localized but there is also a large number of plaques composed only of Ab1-38Arc. Also for Ab1-42 we find a large population that is only composed of Ab1-42Arc. Instead of using the number of plaques as labels we used relative values (%-total number of plaques). 
 ```{r}
 plot_venn(pp, mzNames = c("Ab1-38Arc",
                           "Ab1-39Arc",
                           "Ab1-42Arc"),
-          relative = FALSE)
-
+          relative = TRUE)
 ```
-We can use this data to analysis the general qualitative composition of plaques using a venn diagramm. 
-Now we can quantify the visual impression we had when we took a look at the ion images above: Ab1-38Arc and Ab1-39Arc are highly co-localized but there is also a large number of plaques composed only of Ab1-38Arc. Also for Ab1-42 we find a large population that is only composed of Ab1-42Arc. Instead of using the number of plaques as labels we could also use relative values. 
-Futhermore we could also check the pixelwise co-localization. Here we see the most of the pixels are assosiated with Ab1-38Arc only.
-```{r}
-plot_venn(pp, mzNames = c("Ab1-38Arc",
-                          "Ab1-39Arc",
-                          "Ab1-42Arc"),
-          relative = TRUE, 
-          method = "pixel")
-```
-As a next step lets look at the size distribution of the plaques. We recorded the MSI dataset with a pixel-size of 20x20 micrometer (um) which results in a pixel-area of 400 um².
-The list "unified" in the pp object contains an entry "intensities" here we find a list for each plaque ID that contains all the intensities for the different mz values. The length of these vectors is equal to the number of pixels per plaque. First we transform this list structure to tibble for better usability.
+As a next step lets look at the size distribution of the plaques. We recorded the MSI data set with a pixel-size of 20x20 micrometer (um) which results in a pixel-area of 400 um². 
+The list "unified" in the pp object contains an entry "intensities" here we find a list for each plaque ID that contains all the intensities for the different mz values. The length of these vectors is equal to the number of pixels per plaque. First we transform this list structure to tibble for better usability. We will count the number of pixels per ID and then multiply it by 400 um² (pixel-area).
 
 ```{r}
-df <-bind_rows(pp$unified$intensities, .id = "ID") %>%
-      group_by(ID) %>%
-      mutate(size = n() * 400) 
+df <- bind_rows(pp$unified$intensities, .id = "ID") %>%
+        mutate(ID = as.numeric(ID)) %>%
+        group_by(ID) %>%
+        mutate(size = n() * 400) 
 head(df)
 ```
 Using this tibble we first plot the histogram for the size distribution.
 We find that most plaques are small but there are also some plaques that are really big. 
 ```{r}
 ggplot(df, aes(x = size)) + 
-  geom_histogram(bins = 50) + 
+  geom_histogram(bins = 40) + 
   theme_bw() +
   labs(x = "Plaque area [um²]")
 
 ```
-Next we define some size-groups and see if there is anything we can learn regarding molecular composition of different plaque sizes.
-As we see from the histogram most plaques are well below 10000 um² and as we want to have comparable group sizes we have to set the group bounaries according to that. We will define everything <= 400 um² (which means 1 pixel only) as "small", <= 2000 um² as "medium" and > 2000 um² as "big".
+Using the Venn-diagram we already got an impression about the mean composition of the plaque but we did not make use about the intensity information we have. Note: MALDI and especially MALDI imaging are not easy to use quantitatively and in this studies we did not take any matters (like spraying and standard) to facilitate quantification. The ionization in MALDI imaging is a complex process and especially in case of peptides the relative ionization of different large peptides is well documented. As the peptides become larger they require more energy to ionize and also hit the instrument detector with a lower energy which leads them to create a lower signal. Still, although we may not be able to make absolute statements we can still learn about relative distributions although a ratio of 1:1 for two different signals will not really mean equal amounts and rather then looking at one signal alone or the ratio of two we should focus more on looking how ratios change. With that in mind lets take a look at the data: First we need to calculate the mean intensities per plaque.
+
 ```{r}
-df_size <- df %>%
+df_mean <- df %>%
+  ungroup() %>%
+  rename("Ab1_38Arc" = "4059.9",
+         "Ab1_39Arc" = "4159.1",
+         "Ab1_42Arc" = "4442.6") %>%
   group_by(ID) %>%
-  mutate(sizeGroup = ifelse(size <= 400, "small",
-                            ifelse(size <= 2000, "medium", "big")))
-df_size %>% group_by(sizeGroup) %>% summarise(n = length(unique(ID)))
+  gather(mz, int, -size, -ID) %>%
+  group_by(ID, mz) %>%
+  summarise(meanInt = mean(int),
+            size = first(size),
+            .groups = "drop_last") 
+df_mean %>%
+  spread(mz, meanInt) %>%
+  head()
+
+
+```
+```{r}
+ggplot(df_mean, aes(x = mz, y = meanInt)) +
+  geom_boxplot() +
+  theme_bw() +
+  labs(x = "Abeta species",
+       y = "Mean plaque Int. [a.u.]")
+
+
+```
+From the figure above we see that Ab1-38Arc has a much higher overall intensity then the other two species. As already pointed out the raw intensity values will not tell us that much and we should rather use ratios of intensities.
+
+Next we define some size-groups and see if there is anything we can learn regarding molecular composition of different plaque sizes.
+As we see from the histogram most plaques are well below 10000 um² and as we want to have comparable group sizes we have to set the group boundaries according to that. We will define everything <= 400 um² (which means 1 pixel only) as "small", <= 2000 um² as "medium" and > 2000 um² as "big".
+```{r}
+df_size <- df_mean %>%
+  spread(mz, meanInt) %>%  
+  group_by(ID) %>%
+  mutate(sizeGroup = ifelse(size <= 400, 
+                            "small",
+                            ifelse(size <= 2000, 
+                                   "medium", 
+                                   "big"))) 
+
+df_size %>% 
+  group_by(sizeGroup) %>% 
+  summarise(n = length(unique(ID)), .groups = "drop_last") %>%
+  ggplot(aes(x = sizeGroup, 
+             y = n, 
+             label = n)) + 
+  geom_col() +
+  geom_text(y = 100) +
+  theme_bw() +
+  labs(x = "Size group",
+       y = "Number of observations") 
+  
 
 ```
 Next we plot the Ab1-42Arc vs Ab1-38Arc ratio against the group size.
 As we see the smaller plaques have a much higher median ratio (meaning more Ab1-42Arc in relation to Ab1-38Arc) then the big ones.
 ```{r}
 df_size %>%
-  ungroup() %>%
-  rename("Ab1_38Arc" = "4059.9",
-         "Ab1_39Arc" = "4159.1",
-         "Ab1_42Arc" = "4442.6") %>%
   mutate(ratio = Ab1_42Arc/Ab1_38Arc) %>%
   ggplot(aes(x = sizeGroup, y = ratio)) + 
   geom_boxplot() +
@@ -241,6 +292,8 @@ df_size %>%
   labs(x = "Size Group",
        y = "Ratio Ab1-42Arc/Ab1-38Arc")
 ```
+
+# Session info
 
 ```{r}
 sessionInfo()
