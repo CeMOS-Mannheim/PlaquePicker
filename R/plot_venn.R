@@ -13,7 +13,8 @@ plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("p
   method = match.arg(method)
   if(!requireNamespace("Vennerable")) {
     stop("To use this function the package 'Vennerable' is needed.\n
-         Install it using devtools::install_github('js229/Vennerable')")
+         Install it using devtools::install_github('js229/Vennerable').\n
+         Vennerable depends on 'graph' and 'RBGL' from Bioconductor!\n")
   }
   if(!is.null(mzNames)) {
     if(!length(mzNames) == length(mzIdx)) {
@@ -56,5 +57,9 @@ plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("p
   if(!plot) {
     return(venn)
   }
+  if(length(mzIdx) < 4) {
   Vennerable::plot(venn)
+  } else {
+    Vennerable::plot(Vennerable:::compute.S4(venn))
+  }
 }

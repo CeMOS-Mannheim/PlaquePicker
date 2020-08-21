@@ -15,8 +15,8 @@ point2LineDist      = function(p1, p2, x) {
   # suppose you have a line defined by two points P1 and P2, then the
   # distance from point x to the line is defined (in 2D) by
 
-  d         = abs(((p2[2] - p1[2]) * x[1]) - ((p2[1] - p1[1]) * x[2]) + (p2[1] * p1[2]) - (p2[2] * p1[1]) /
-                    sqrt(sum((p2 - p1) ** 2)))
+  d <- abs(((p2[2] - p1[2]) * x[1]) - ((p2[1] - p1[1]) * x[2]) + (p2[1] * p1[2]) - (p2[2] * p1[1]) /
+             sqrt(sum((p2 - p1) ** 2)))
 
   return(d)
 
@@ -45,44 +45,51 @@ geometricThreshold <- function(intensities, breaks = 500, plot = FALSE) {
 
 
   # Generate histogram object
-  H                   = hist(intensities, breaks = breaks, plot = FALSE)
+  H <- hist(intensities,
+            breaks = breaks, plot = FALSE)
 
   # find the coordinates of the max bin (peak) and the last bin (tail)
-  pIdx                = which.max(H$counts)
-  tIdx                = length(H$mids)
+  pIdx <- which.max(H$counts)
+  tIdx <- length(H$mids)
 
-  peak                = c(H$mids[pIdx], H$counts[pIdx])
-  tail                = c(H$mids[tIdx], H$counts[tIdx])
+  peak <- c(H$mids[pIdx], H$counts[pIdx])
+  tail <- c(H$mids[tIdx], H$counts[tIdx])
 
   if(plot) { # Cosmetic: plots dots on peak and tail and connects them by a red line
     hist(intensities, breaks = breaks,
          xlab = "Intensities",
          ylab = "Frequency")
-    points(x = peak[1], y = peak[2], col = "red", pch = 20, cex = 2)
-    points(x = tail[1], y = tail[2], col = "red", pch = 20, cex = 2)
+    points(x = peak[1],
+           y = peak[2],
+           col = "red", pch = 20, cex = 2)
+    points(x = tail[1],
+           y = tail[2],
+           col = "red", pch = 20, cex = 2)
     lines(x = rbind(peak, tail), col = "red", lty = 2)
   }
 
   # Generate empty vector
-  allDist             = vector(mode = "numeric", length = length(H$mids) - pIdx + 1)
+  allDist <- vector(mode = "numeric", length = length(H$mids) - pIdx + 1)
 
   # loop through each bin and compute the distance to the line connecting the peak to the tail
   for (ii in pIdx : length(H$mids))
   {
 
     # compute the distance
-    allDist[ii]         = point2LineDist(peak, tail, c(H$mids[ii], H$counts[ii]))
+    allDist[ii] <- point2LineDist(peak, tail, c(H$mids[ii], H$counts[ii]))
 
 
 
   }
 
   # find the max distance
-  maxIdx              = which.max(allDist)
+  maxIdx <- which.max(allDist)
 
   if(plot) {
 
-    points(x = H$mids[maxIdx], y = H$counts[maxIdx], col = "green", pch = 10, cex = 5)
+    points(x = H$mids[maxIdx],
+           y = H$counts[maxIdx],
+           col = "green", pch = 10, cex = 5)
   }
 
   # Finally threshold your intensityObject based on the resulting threshold.

@@ -2,9 +2,6 @@
 #'
 #' @param ionImages array of ion images as returned by \code{MALDIquant::msiSlices()}.
 #' @param coord     array of coordinates as returned by \code{MALDIquant::coordinates()}.
-#' @param method    character, which thresholding method to use. Set to "peak" if you do not want to apply any threhold.
-#'                  In this case every signal > 0 will be considered as valid. Generate the ion images from peak picked data.
-#' @param ...       Arguments past to thresholding functions.
 #'
 #' @return
 #' A list, on the top level the list contains one entry per provided ion image with
@@ -19,9 +16,8 @@
 #' @export
 #'
 #' @examples
-#' pp <- plaquePicker(ionImages = NLGF67w_mouse1_rep1,
-#'                    coord = NLGF67w_mouse1_rep1_coord,
-#'                    method = "tpoint")
+#' pp <- plaquePicker(NLGF67w_mouse1_rep1,
+#'                          coord = NLGF67w_mouse1_rep1_coord)
 plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "peak"), ...) {
   method <- match.arg(method)
   # helper function to extract spectra indices
