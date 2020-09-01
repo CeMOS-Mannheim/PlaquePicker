@@ -1,10 +1,10 @@
 ---
 title: "PLAQUE PICKER Example"
-output:
-  pdf_document: default
-  html_notebook: default
-  html_document:
-    df_print: paged
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{PLAQUE PICKER Example}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
@@ -22,26 +22,34 @@ The data that comes with this package (extract data-raw/NLGF67w_mouse1_rep1.zip 
 
 # Installing dependencies
 ```{r}
-install.packages("MALDIquant", dependencies = TRUE)
-install.packages("MALDIquantForeign", dependencies = TRUE)
+if(!require(MALDIquant)) 
+install.packages("MALDIquant", repos = "http://cran.us.r-project.org", dependencies = TRUE)
+if(!require(MALDIquantForeign)) 
+install.packages("MALDIquantForeign", repos = "http://cran.us.r-project.org", dependencies = TRUE)
 
 # install devtools to be able to install packages from github 
-install.packages("devtools", dependencies = TRUE)
-devtools::install_github("CeMOS-Mannheim/plaquePicker")
+if(!require(devtools))
+install.packages("devtools", repos = "http://cran.us.r-project.org", dependencies = TRUE)
+#devtools::install_github("CeMOS-Mannheim/plaquePicker")
 
 # The following dependencies are not needed to use the core functions of the package 
 # but will be used in this vignette
-install.packages("tidyverse", dependencies = TRUE)
-install.packages("viridis", dependencies = TRUE)
+if(!require(tidyverse))
+install.packages("tidyverse", repos = "http://cran.us.r-project.org",dependencies = TRUE)
+if(!require(viridis))
+install.packages("viridis", repos = "http://cran.us.r-project.org",dependencies = TRUE)
 
 # for the plotting of Venn-Diagrams we will be using the package Vennerable 
 # which is not in the CRAN repository and has some dependencies to the 
 # BioConductor repository. 
 if (!requireNamespace("BiocManager", quietly = TRUE))
-     install.packages("BiocManager")
+     install.packages("BiocManager", repos = "http://cran.us.r-project.org")
 BiocManager::install(version = "3.11")
+if(!require(RBGL))
 BiocManager::install("RBGL")
+if(!require(graph))
 BiocManager::install("graph")
+if(!require(Vennerable))
 devtools::install_github("js229/Vennerable")
 ```
 
