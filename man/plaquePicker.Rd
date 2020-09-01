@@ -11,10 +11,10 @@ plaquePicker(ionImages, coord, method = c("tpoint", "geometric", "peak"), ...)
 
 \item{coord}{array of coordinates as returned by \code{MALDIquant::coordinates()}.}
 
-\item{method}{character, which thresholding method to use. Set to "peak" if you do not want to apply any threhold.
-In this case every signal > 0 will be considered as valid. Generate the ion images from peak picked data.}
-
-\item{...}{Arguments past to thresholding functions.}
+\item{method}{character, method to use for binarization.
+If set to "peak" the threshold is set to 0 so each signal will be counted as valid.
+Make sure you set the tolerance for the ion images right
+and used actual peak data to generate the ion images.}
 }
 \value{
 A list, on the top level the list contains one entry per provided ion image with
@@ -30,7 +30,6 @@ Also, there is another entry called \code{unified}: The result of all binarized 
 Separate stack of ion images into seperated single-objects.
 }
 \examples{
-pp <- plaquePicker(ionImages = NLGF67w_mouse1_rep1,
-                   coord = NLGF67w_mouse1_rep1_coord,
-                   method = "tpoint")
+pp <- plaquePicker(NLGF67w_mouse1_rep1,
+                         coord = NLGF67w_mouse1_rep1_coord)
 }

@@ -40,6 +40,8 @@ point2LineDist      = function(p1, p2, x) {
 #'
 #'
 #' @export
+#'
+#' @importFrom graphics lines points
 
 geometricThreshold <- function(intensities, breaks = 500, plot = FALSE) {
 

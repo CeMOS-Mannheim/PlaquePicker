@@ -2,3 +2,5 @@ NLGF_Prot_NLGF1.imzML
 NLGF_Prot_NLGF1.ibd
 .Rproj.user
 .RData
+.Rprofile
+renv

@@ -2,6 +2,10 @@
 #'
 #' @param ionImages array of ion images as returned by \code{MALDIquant::msiSlices()}.
 #' @param coord     array of coordinates as returned by \code{MALDIquant::coordinates()}.
+#' @param method    character, method to use for binarization.
+#'                  If set to "peak" the threshold is set to 0 so each signal will be counted as valid.
+#'                  Make sure you set the tolerance for the ion images right
+#'                  and used actual peak data to generate the ion images.
 #'
 #' @return
 #' A list, on the top level the list contains one entry per provided ion image with

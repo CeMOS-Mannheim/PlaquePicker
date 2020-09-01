@@ -6,7 +6,8 @@
 #'
 #' @param ints      numeric vector of intensities.
 #' @param breaks    numeric, number of bins in histogram.
-#' @param diagnosis logical, return set of internal values additonal to threshold
+#' @param diagnosis logical, return set of internal values additional to threshold
+#' @param plot      logical, show plot for diagnosis.
 #'
 #' @return
 #' numeric threshold.
@@ -14,6 +15,7 @@
 #'
 #' @importFrom tibble tibble
 #' @importFrom ggplot2 ggplot aes geom_col geom_line geom_vline theme_bw geom_text labs theme
+#' @importFrom graphics hist
 #'
 #' @examples
 #' thresh <- tpoint(as.vector(NLGF67w_mouse1_rep1[,,1]))

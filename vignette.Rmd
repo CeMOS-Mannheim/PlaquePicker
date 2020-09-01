@@ -20,6 +20,31 @@ We defined a plaque as containing at least one Abeta species in at least one pix
 
 The data that comes with this package (extract data-raw/NLGF67w_mouse1_rep1.zip for a *.imzML, data taken from Enzlein et. al. 2020) was trimmed to the m/z-rage of interest (4k-4.5kDa) and the number of m/z-bins was reduced to a 1/4 of the orignial number of bins. This will lead to slight differences in the results. If you are interested in preproducing the results from the above mentioned publication please use the original data uploaded to PRIDE.    
 
+# Installing dependencies
+```{r}
+install.packages("MALDIquant", dependencies = TRUE)
+install.packages("MALDIquantForeign", dependencies = TRUE)
+
+# install devtools to be able to install packages from github 
+install.packages("devtools", dependencies = TRUE)
+devtools::install_github("CeMOS-Mannheim/plaquePicker")
+
+# The following dependencies are not needed to use the core functions of the package 
+# but will be used in this vignette
+install.packages("tidyverse", dependencies = TRUE)
+install.packages("viridis", dependencies = TRUE)
+
+# for the plotting of Venn-Diagrams we will be using the package Vennerable 
+# which is not in the CRAN repository and has some dependencies to the 
+# BioConductor repository. 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+     install.packages("BiocManager")
+BiocManager::install(version = "3.11")
+BiocManager::install("RBGL")
+BiocManager::install("graph")
+devtools::install_github("js229/Vennerable")
+```
+
 # Data preprocessing
 
 Load needed libraries
@@ -46,7 +71,7 @@ suppressPackageStartupMessages({
 ```
 
 This package comes with a prepared set of ion images that can directly be used by the plaquePicker-function. Nevertheless, here we show how we prepared this example data: 
-```{r, eval = TRUE}
+```{r, eval = TRUE, results='hide'}
 # unzip spectra
 unzip("data-raw/NLGF67w_mouse1_rep1.zip")
 

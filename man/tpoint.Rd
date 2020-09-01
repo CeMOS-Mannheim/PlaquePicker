@@ -11,7 +11,7 @@ tpoint(ints, breaks = 500, diagnosis = FALSE, plot = FALSE)
 
 \item{breaks}{numeric, number of bins in histogram.}
 
-\item{diagnosis}{logical, return set of internal values additonal to threshold}
+\item{diagnosis}{logical, return set of internal values additional to threshold}
 
 \item{plot}{logical, show plot for diagnosis.}
 }

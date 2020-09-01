@@ -9,6 +9,8 @@
 #'
 #'
 #' @export
+#'
+#' @importFrom stats na.omit
 plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("plaque", "pixel"), relative = TRUE) {
   method = match.arg(method)
   if(!requireNamespace("Vennerable")) {

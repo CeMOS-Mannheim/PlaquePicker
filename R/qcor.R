@@ -9,6 +9,8 @@
 #' matrix of quantile corrected intensities.
 #' @export
 #'
+#' @importFrom  stats quantile
+#'
 #' @examples
 #' im_cor <- qcor(NLGF67w_mouse1_rep1[,,1], 0.9995)
 
