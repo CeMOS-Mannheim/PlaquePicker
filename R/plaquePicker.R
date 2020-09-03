@@ -1,3 +1,41 @@
+#' Internal helper function to extract spectra indices
+#'
+#' @param comp        matrix, result of \code{raster::clump}. Matrix with indicies for each unique connected component.
+#' @param coord       array of coordinates as returned by \code{MALDIquant::coordinates()}.
+#'
+#' @return
+get_specIdx <- function(comp, coord) {
+  maxComp_idx <- max(comp, na.rm=TRUE)
+
+  clumpPoints <- vector("list", maxComp_idx)
+  # populate the list with pixels that correspont to CC ID
+  for (j in 1:maxComp_idx)
+  {
+    clumpPoints[[j]]            = which(comp == j, arr.ind = TRUE)
+  }
+
+  coord_x <- coord[,1]
+  coord_y <- coord[,2]
+
+  x <- rownames(comp)
+  y <- colnames(comp)
+
+  spectraIdx <- vector("list", maxComp_idx)
+  for(clump in 1:maxComp_idx) {
+    numPx <- dim(clumpPoints[[clump]])[1]
+    for(pixel in 1:numPx) {
+      # assign MALDIquant spectra index to clump ID
+      spectraIdx[[clump]][[pixel]] <- which(
+        coord_x == as.numeric(x[clumpPoints[[clump]][pixel,1]])
+        &
+          coord_y == as.numeric(y[clumpPoints[[clump]][pixel,2]]))
+    }
+  }
+  return(spectraIdx)
+}
+
+
+
 #' Separate stack of ion images into separated single-objects.
 #'
 #' @param ionImages array of ion images as returned by \code{MALDIquant::msiSlices()}.
@@ -20,25 +58,9 @@
 #' @export
 #'
 #' @examples
-#' pp <- plaquePicker(NLGF67w_mouse1_rep1,
-#'                          coord = NLGF67w_mouse1_rep1_coord)
+#' pp <- plaquePicker(NLGF67w_mouse1_rep1, coord = NLGF67w_mouse1_rep1_coord)
 plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "peak"), ...) {
   method <- match.arg(method)
-  # helper function to extract spectra indices
-  get_specIdx <- function(comp, clumpPoints) {
-    spectraIdx <- vector("list", max(comp, na.rm=TRUE))
-    for(clump in 1:max(comp, na.rm=TRUE) ) {
-      for(pixel in 1:dim(clumpPoints[[clump]])[1]) {
-        # assing MALDIquant spectra index to clump ID
-        spectraIdx[[clump]][[pixel]] <- which(
-          coord[,1] == as.numeric(rownames(comp)[clumpPoints[[clump]][pixel,1]])
-          &
-            coord[,2] == as.numeric(colnames(comp)[clumpPoints[[clump]][pixel,2]]))
-
-      }
-    }
-    return(spectraIdx)
-  }
 
   mzValues <- attr(ionImages, "center")
   resultList <- vector("list", length = length(mzValues)+1)
@@ -56,37 +78,34 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
     ints <- as.vector(ionImages[,,i])
 
     switch(method,
-          "tpoint" = {
-            threshold <- tpoint(ints, ...)
-            cat("\n threshold of mz", mzValues[i],"based on t-point thresholding = ", threshold, "\n")
-            bin <- ifelse(test = threshold < ints,
-                          yes = 1,
-                          no = ifelse(is.na(ints),
-                                      yes = NA,
-                                      no = 0))
-          },
-          "geometric" = {
-            threshold <- geometricThreshold(ints, ...)
-            cat("\n threshold of mz", mzValues[i],"based on geometric thresholding = ", threshold, "\n")
-            bin <- ifelse(test = threshold < ints,
-                          yes = 1,
-                          no = ifelse(is.na(ints),
-                                      yes = NA,
-                                      no = 0))
-          },
-          "peak" = {
-            cat("\n no threshold needed for mz", mzValues[i],"data considered as peaks\n")
-            bin <- ifelse(test = ints > 0,
-                          yes = 1,
-                          no = ifelse(is.na(ints),
-                                      yes = NA,
-                                      no = 0))
-            threshold <- -Inf
-          }
+           "tpoint" = {
+             threshold <- tpoint(ints, ...)
+             cat("\n threshold of mz", mzValues[i],"based on t-point thresholding = ", threshold, "\n")
+             bin <- ifelse(test = threshold < ints,
+                           yes = 1,
+                           no = ifelse(is.na(ints),
+                                       yes = NA,
+                                       no = 0))
+           },
+           "geometric" = {
+             threshold <- geometricThreshold(ints, ...)
+             cat("\n threshold of mz", mzValues[i],"based on geometric thresholding = ", threshold, "\n")
+             bin <- ifelse(test = threshold < ints,
+                           yes = 1,
+                           no = ifelse(is.na(ints),
+                                       yes = NA,
+                                       no = 0))
+           },
+           "peak" = {
+             cat("\n no threshold needed for mz", mzValues[i],"data considered as peaks\n")
+             bin <- ifelse(test = ints > 0,
+                           yes = 1,
+                           no = ifelse(is.na(ints),
+                                       yes = NA,
+                                       no = 0))
+             threshold <- -Inf
+           }
     )
-
-
-
 
     # rebuild the matrix
     binMat <- matrix(bin,
@@ -104,18 +123,8 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
     resultList[[i]][["binMat"]] <- binMat
     resultList[[i]][["threshold"]] <- threshold
 
-    clumpPoints <- vector("list",max(conComp, na.rm=TRUE))
-
-    # populate the list with pixels that correspont to CC ID
     cat("extracting clump information...\n")
-    for (j in 1:max(conComp, na.rm=TRUE))
-    {
-      clumpPoints[[j]]            = which(conComp == j, arr.ind = TRUE)
-    }
-
-    spectraIdx <- get_specIdx(comp = conComp,
-                              clumpPoints = clumpPoints)
-    resultList[[i]][["spectraIdx"]] <- spectraIdx
+    resultList[[i]][["spectraIdx"]] <- get_specIdx(comp = conComp, coord = coord)
 
     # add binMat to unified binary image
     uni <- uni + binMat
@@ -131,18 +140,8 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
   colnames(uniComp) <- colnames(uni)
   resultList[[length(resultList)]][["uniComp"]] <- uniComp
 
-  clumpPoints <- vector("list",max(uniComp, na.rm=TRUE))
-
-  # populate the list with pixels that correspont to CC ID
   cat("extracting unified clump information...\n")
-  for (i in 1:max(uniComp, na.rm=TRUE))
-  {
-    clumpPoints[[i]]            = which(uniComp == i, arr.ind = TRUE)
-  }
-
-  spectraIdx <- get_specIdx(comp = uniComp,
-                            clumpPoints = clumpPoints)
-  resultList[[length(resultList)]][["spectraIdx"]] <- spectraIdx
+  resultList[[length(resultList)]][["spectraIdx"]] <- get_specIdx(comp = uniComp, coord = coord)
   names(resultList) <- c(mzValues, "unified")
   intensities <- vector("list", max(uniComp, na.rm=TRUE))
   for(i in 1:length(intensities)) {

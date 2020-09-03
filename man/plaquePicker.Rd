@@ -30,6 +30,5 @@ Also, there is another entry called \code{unified}: The result of all binarized 
 Separate stack of ion images into separated single-objects.
 }
 \examples{
-pp <- plaquePicker(NLGF67w_mouse1_rep1,
-                         coord = NLGF67w_mouse1_rep1_coord)
+pp <- plaquePicker(NLGF67w_mouse1_rep1, coord = NLGF67w_mouse1_rep1_coord)
 }
