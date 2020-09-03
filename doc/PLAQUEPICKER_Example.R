@@ -156,7 +156,8 @@ plot(plaqueAvg,
      ylab = "Intensity [a.u.]")
 lines(avgSpec, 
       lty=2)
-labelPeaks(detectPeaks(plaqueAvg), 
+labelPeaks(detectPeaks(plaqueAvg, 
+                       method = "SuperSmoother"), 
            digits = 0)
 lines(detectPeaks(plaqueAvg))
 legend("right",
@@ -244,6 +245,43 @@ df_size %>%
   theme_bw() +
   labs(x = "Size Group",
        y = "Ratio Ab1-42Arc/Ab1-38Arc")
+
+## -----------------------------------------------------------------------------
+small_ID <- df_size %>%
+  ungroup() %>%
+  mutate(ratio = Ab1_42Arc/Ab1_38Arc) %>%
+  filter(sizeGroup == "small") %>%
+  filter(ratio == max(ratio)) %>% 
+  pull(ID) 
+
+big_ID <- df_size %>%
+  ungroup() %>%
+  mutate(ratio = Ab1_42Arc/Ab1_38Arc) %>%
+  filter(sizeGroup == "big") %>%
+  filter(ratio == min(ratio)) %>% 
+  pull(ID) 
+
+avg_big <- averageMassSpectra(spec[get_IdxFromID(pp, big_ID)])
+avg_small <- averageMassSpectra(spec[get_IdxFromID(pp, small_ID)])
+
+plot(avg_big, 
+     ylab = "Intensity [a.u.]",
+     main = "Average mass spectra of single plaques")
+lines(avg_small, 
+      lty=2)
+labelPeaks(detectPeaks(avg_big,
+                       method = "SuperSmoother",
+                       SNR = 3), 
+           digits = 0)
+labelPeaks(detectPeaks(avg_small,
+                       method = "SuperSmoother",
+                       SNR = 3), 
+           digits = 0)
+legend("topright",
+       legend=c("Big plaque","Small plaque"),
+       lty=1:2, 
+       cex=0.8)
+
 
 ## -----------------------------------------------------------------------------
 sessionInfo()

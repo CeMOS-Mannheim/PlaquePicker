@@ -209,7 +209,8 @@ plot(plaqueAvg,
      ylab = "Intensity [a.u.]")
 lines(avgSpec, 
       lty=2)
-labelPeaks(detectPeaks(plaqueAvg), 
+labelPeaks(detectPeaks(plaqueAvg, 
+                       method = "SuperSmoother"), 
            digits = 0)
 lines(detectPeaks(plaqueAvg))
 legend("right",
@@ -317,6 +318,48 @@ df_size %>%
   labs(x = "Size Group",
        y = "Ratio Ab1-42Arc/Ab1-38Arc")
 ```
+
+Now lets take a look at some spectra of single plaques from these two groups. We extract the indicies that correspond to the plaque IDs.
+First select the plaque IDs that correspond to the highest and to the lowest Ab1-42Arc/Ab1-38Arc ratio.
+Then we find the spectra indicies that correspond to these plaque IDs with get_idxFromID and lastly we average the spectra and plot them.
+```{r}
+small_ID <- df_size %>%
+  ungroup() %>%
+  mutate(ratio = Ab1_42Arc/Ab1_38Arc) %>%
+  filter(sizeGroup == "small") %>%
+  filter(ratio == max(ratio)) %>% 
+  pull(ID) 
+
+big_ID <- df_size %>%
+  ungroup() %>%
+  mutate(ratio = Ab1_42Arc/Ab1_38Arc) %>%
+  filter(sizeGroup == "big") %>%
+  filter(ratio == min(ratio)) %>% 
+  pull(ID) 
+
+avg_big <- averageMassSpectra(spec[get_IdxFromID(pp, big_ID)])
+avg_small <- averageMassSpectra(spec[get_IdxFromID(pp, small_ID)])
+
+plot(avg_big, 
+     ylab = "Intensity [a.u.]",
+     main = "Average mass spectra of single plaques")
+lines(avg_small, 
+      lty=2)
+labelPeaks(detectPeaks(avg_big,
+                       method = "SuperSmoother",
+                       SNR = 3), 
+           digits = 0)
+labelPeaks(detectPeaks(avg_small,
+                       method = "SuperSmoother",
+                       SNR = 3), 
+           digits = 0)
+legend("topright",
+       legend=c("Big plaque","Small plaque"),
+       lty=1:2, 
+       cex=0.8)
+
+```
+We have of course selected extreme cases here, as we can see from the box plot, there is a large overlap in both groups regarding the ratio. Nevertheless in general there is a distinct difference in small and large plaques regarding there composition in the APP NL-G-F mouse model.
 
 # Session info
 
