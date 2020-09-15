@@ -4,6 +4,7 @@
 #' @param coord       array of coordinates as returned by \code{MALDIquant::coordinates()}.
 #'
 #' @return
+#' list of spectra indicies.
 get_specIdx <- function(comp, coord) {
   maxComp_idx <- max(comp, na.rm=TRUE)
 
@@ -32,6 +33,28 @@ get_specIdx <- function(comp, coord) {
     }
   }
   return(spectraIdx)
+}
+
+#' Get intensity values from ion images
+#'
+#' @param comp matrix, locations of connected components
+#' @param ii   array, ion images
+#'
+#' @return
+#' list of intensities.
+get_intensities <-   function(comp, ii) {
+  mzValues <- attr(ii, "center")
+  intensities <- vector("list", max(comp, na.rm=TRUE))
+  for(i in 1:length(intensities)) {
+    extractedInt <- vector("list", length(mzValues))
+    names(extractedInt) <- mzValues
+    for(j in 1:length(mzValues)) {
+
+      extractedInt[[j]] <-ii[,,j][which(0<(comp==i))]
+    }
+    intensities[[i]] <- extractedInt
+  }
+  return(intensities)
 }
 
 
@@ -143,16 +166,8 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
   cat("extracting unified clump information...\n")
   resultList[[length(resultList)]][["spectraIdx"]] <- get_specIdx(comp = uniComp, coord = coord)
   names(resultList) <- c(mzValues, "unified")
-  intensities <- vector("list", max(uniComp, na.rm=TRUE))
-  for(i in 1:length(intensities)) {
-    extractedInt <- vector("list", length(mzValues))
-    names(extractedInt) <- mzValues
-    for(j in 1:length(mzValues)) {
 
-      extractedInt[[j]] <-ionImages[,,j][which(0<(uniComp==i))]
-    }
-    intensities[[i]] <- extractedInt
-  }
-  resultList[[length(resultList)]][["intensities"]] <- intensities
+
+  resultList[[length(resultList)]][["intensities"]] <- get_intensities(comp = uniComp, ii = ionImages)
   return(resultList)
 }
