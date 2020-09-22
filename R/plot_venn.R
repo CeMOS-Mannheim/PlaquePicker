@@ -63,6 +63,6 @@ plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("p
   if(length(mzIdx) < 4) {
   Vennerable::plot(venn)
   } else {
-    Vennerable::plot(Vennerable:::compute.S4(venn))
+    Vennerable:::plotVenn(Vennerable:::compute.S4(venn))
   }
 }

@@ -36,9 +36,9 @@ suppressPackageStartupMessages({
   # The following dependencies are not needed to use the core functions of the package 
   # but will be used in this vignette
   if(!require(tidyverse))
-    install.packages("tidyverse", repos = "http://cran.us.r-project.org",dependencies = TRUE)
+    install.packages("tidyverse", repos = "http://cran.us.r-project.org", dependencies = TRUE)
   if(!require(viridis))
-    install.packages("viridis", repos = "http://cran.us.r-project.org",dependencies = TRUE)
+    install.packages("viridis", repos = "http://cran.us.r-project.org", dependencies = TRUE)
   
   # for the plotting of Venn-Diagrams we will be using the package Vennerable 
   # which is not in the CRAN repository and has some dependencies to the 
