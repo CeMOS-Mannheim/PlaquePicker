@@ -67,6 +67,8 @@ get_intensities <-   function(comp, ii) {
 #'                  If set to "peak" the threshold is set to 0 so each signal will be counted as valid.
 #'                  Make sure you set the tolerance for the ion images right
 #'                  and used actual peak data to generate the ion images.
+#' @param binMatirx binary matrix, if provided it overwrites \code{method} and is used to subset \code{ionImages}.
+#'                  This can be helpful if you want to segment one modality (e.g. lipid data) by another (e.g. peptide data).
 #'
 #' @return
 #' A list, on the top level the list contains one entry per provided ion image with
@@ -82,8 +84,16 @@ get_intensities <-   function(comp, ii) {
 #'
 #' @examples
 #' pp <- plaquePicker(NLGF67w_mouse1_rep1, coord = NLGF67w_mouse1_rep1_coord)
-plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "peak"), ...) {
-  method <- match.arg(method)
+plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "peak"), binMatrix = NULL, ...) {
+  if(!is.null(binMatrix)) {
+    if(!dim(ionImages[,,1]) == dim(binMatrix)) {
+      stop("Dimensions of binMatrix has to be the same as ionImages! \n
+           !dim(ionImages[,,1]) == dim(binMatrix)\n")
+    }
+    method <- "binMat"
+  } else {
+    method <- match.arg(method)
+  }
 
   mzValues <- attr(ionImages, "center")
   resultList <- vector("list", length = length(mzValues)+1)
@@ -126,6 +136,11 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
                            no = ifelse(is.na(ints),
                                        yes = NA,
                                        no = 0))
+             threshold <- -Inf
+           },
+           "binMat" = {
+             cat("\n no threshold needed for mz", mzValues[i],"binMatrix used for segmentation\n")
+             bin <- binMatrix
              threshold <- -Inf
            }
     )
