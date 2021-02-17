@@ -32,7 +32,7 @@ get_specIdx <- function(comp, coord) {
           coord_y == as.numeric(y[clumpPoints[[clump]][pixel,2]]))
     }
   }
-  return(spectraIdx)
+  return(c("spectraIdx" = spectraIdx))
 }
 
 #' Get intensity values from ion images
@@ -68,7 +68,10 @@ get_intensities <-   function(comp, ii) {
 #'                  Make sure you set the tolerance for the ion images right
 #'                  and used actual peak data to generate the ion images.
 #' @param binMatirx binary matrix, if provided it overwrites \code{method} and is used to subset \code{ionImages}.
-#'                  This can be helpful if you want to segment one modality (e.g. lipid data) by another (e.g. peptide data).
+#'                     This can be helpful if you want to segment one modality (e.g. lipid data) by another (e.g. peptide data).
+#' @param addIonImages array of ion images as returned by \code{MALDIquant::msiSlices()}.
+#'                     In contrast to \code{ionImages} these additional ion images will not be used for segmentation.
+#'                     The data from these ion images will still be included for the summary and sucessive data analysis.
 #'
 #' @return
 #' A list, on the top level the list contains one entry per provided ion image with
@@ -84,15 +87,24 @@ get_intensities <-   function(comp, ii) {
 #'
 #' @examples
 #' pp <- plaquePicker(NLGF67w_mouse1_rep1, coord = NLGF67w_mouse1_rep1_coord)
-plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "peak"), binMatrix = NULL, ...) {
+plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "peak"), binMatrix = NULL, addIonImages = NULL, ...) {
   if(!is.null(binMatrix)) {
-    if(!dim(ionImages[,,1]) == dim(binMatrix)) {
+    # check if dimof ionImages and binMatrix match. Otherwise stop.
+    if(!dim(ionImages[,,1])[1] == dim(binMatrix)[1] & !dim(ionImages[,,1])[2] == dim(binMatrix)[2]) {
       stop("Dimensions of binMatrix has to be the same as ionImages! \n
            !dim(ionImages[,,1]) == dim(binMatrix)\n")
     }
     method <- "binMat"
   } else {
     method <- match.arg(method)
+  }
+
+  if(!is.null(addIonImages)) {
+    # check if dim of ionImages and addIonImages match. Otherwise stop.
+    if(!dim(ionImages[,,1])[1] == dim(addIonImages)[1] & !dim(ionImages[,,1])[2] == dim(addIonImages)[2]) {
+      stop("Dimensions of addIonImages has to be the same as ionImages! \n
+           !dim(ionImages[,,1]) == dim(addIonImages)\n")
+    }
   }
 
   mzValues <- attr(ionImages, "center")
@@ -182,7 +194,14 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
   resultList[[length(resultList)]][["spectraIdx"]] <- get_specIdx(comp = uniComp, coord = coord)
   names(resultList) <- c(mzValues, "unified")
 
+  if(!is.null(addIonImages)) {
+    d <- dim(ionImages)
+    allIonImages <- array(data = c(ionImages, addIonImages), dim = c(d[1:2], d[3]*2))
+    attr(allIonImages, "center") <- c(attr(ionImages, "center"), attr(addIonImages, "center"))
+    resultList[[length(resultList)]][["intensities"]] <- get_intensities(comp = uniComp, ii = allIonImages)
+  } else {
+    resultList[[length(resultList)]][["intensities"]] <- get_intensities(comp = uniComp, ii = ionImages)
+  }
 
-  resultList[[length(resultList)]][["intensities"]] <- get_intensities(comp = uniComp, ii = ionImages)
   return(resultList)
 }

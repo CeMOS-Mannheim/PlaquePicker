@@ -3,6 +3,7 @@
 #' @param pp       plaquePicker result list
 #' @param mzIdx    integer vector, indicies of mz values. To get an overview of mz values try \code{get_mzValues()}. Can not be longer then 3.
 #' @param mzNames  character vector, names of mz values (e.g. "ABeta1-38"). If set to NULL (default) the mz values themself will be used as names during plotting.
+#'                 If set to NA no names will be plotted.
 #' @param plot     logical, if set to FALSE the \code{Venn} object is returned.
 #' @param method   character, if set to "plaque" the Venn diagram will be based on overlapping signals per plaque. If set to "pixel" then it will be pixel-wise.
 #' @param relative logical, if set to false the number of plaques is returned instead of the percentage.
@@ -19,7 +20,7 @@ plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("p
          Install it using devtools::install_github('js229/Vennerable').\n
          Vennerable depends on 'graph' and 'RBGL' from Bioconductor!\n")
   }
-  if(!is.null(mzNames)) {
+  if(!is.null(mzNames) || !is.na(mzNames)) {
     if(!length(mzNames) == length(mzIdx)) {
       stop("mzNames must be either NULL or same lenght as mzIdx\n")
     }
@@ -46,6 +47,9 @@ plot_venn <- function(pp, mzIdx = 1:3, mzNames =NULL, plot = TRUE, method = c("p
            })
   }
   if(!is.null(mzNames)) {
+    if(is.na(mzNames)) {
+      names(PlaqueIDs_venn) <- NA
+    }
     names(PlaqueIDs_venn) <- mzNames
   } else {
     names(PlaqueIDs_venn) <- mzVal
