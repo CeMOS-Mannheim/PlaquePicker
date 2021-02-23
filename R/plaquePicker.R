@@ -26,13 +26,13 @@ get_specIdx <- function(comp, coord) {
     numPx <- dim(clumpPoints[[clump]])[1]
     for(pixel in 1:numPx) {
       # assign MALDIquant spectra index to clump ID
-      spectraIdx[[clump]][[pixel]] <- which(
+      spectraIdx[[clump]][[pixel]] <- c("spectraIdx" = which(
         coord_x == as.numeric(x[clumpPoints[[clump]][pixel,1]])
         &
-          coord_y == as.numeric(y[clumpPoints[[clump]][pixel,2]]))
+          coord_y == as.numeric(y[clumpPoints[[clump]][pixel,2]])))
     }
   }
-  return(c("spectraIdx" = spectraIdx))
+  return(spectraIdx)
 }
 
 #' Get intensity values from ion images

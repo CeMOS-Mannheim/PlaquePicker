@@ -20,6 +20,10 @@
 #' @examples
 #' thresh <- tpoint(as.vector(NLGF67w_mouse1_rep1[,,1]))
 tpoint <- function(ints, breaks = 500, diagnosis = FALSE, plot = FALSE) {
+
+  # remove zero values
+  ints <- as.vector(ints[which(!ints==0)])
+
   hist <- hist(ints, breaks = breaks, plot = FALSE)
 
   bin_val_full <- hist$mids

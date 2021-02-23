@@ -44,7 +44,8 @@ point2LineDist      = function(p1, p2, x) {
 #' @importFrom graphics lines points
 
 geometricThreshold <- function(intensities, breaks = 500, plot = FALSE) {
-
+  # remove zero values
+  intensities <- as.vector(intensities[which(!intensities==0)])
 
   # Generate histogram object
   H <- hist(intensities,
