@@ -24,13 +24,17 @@ get_specIdx <- function(comp, coord) {
   spectraIdx <- vector("list", maxComp_idx)
   for(clump in 1:maxComp_idx) {
     numPx <- dim(clumpPoints[[clump]])[1]
+    pixelIdx <- vector("numeric", length = numPx)
     for(pixel in 1:numPx) {
       # assign MALDIquant spectra index to clump ID
-      spectraIdx[[clump]][[pixel]] <- c("spectraIdx" = which(
+      pixelIdx[pixel] <-  which(
         coord_x == as.numeric(x[clumpPoints[[clump]][pixel,1]])
         &
-          coord_y == as.numeric(y[clumpPoints[[clump]][pixel,2]])))
+          coord_y == as.numeric(y[clumpPoints[[clump]][pixel,2]]))
+
     }
+    spectraIdx[[clump]] <- pixelIdx
+    names(spectraIdx[[clump]]) <- rep("spectraIdx", numPx)
   }
   return(spectraIdx)
 }
