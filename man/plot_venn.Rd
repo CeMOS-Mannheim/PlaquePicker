@@ -18,7 +18,8 @@ plot_venn(
 
 \item{mzIdx}{integer vector, indicies of mz values. To get an overview of mz values try \code{get_mzValues()}. Can not be longer then 3.}
 
-\item{mzNames}{character vector, names of mz values (e.g. "ABeta1-38"). If set to NULL (default) the mz values themself will be used as names during plotting.}
+\item{mzNames}{character vector, names of mz values (e.g. "ABeta1-38"). If set to NULL (default) the mz values themself will be used as names during plotting.
+If set to NA no names will be plotted.}
 
 \item{plot}{logical, if set to FALSE the \code{Venn} object is returned.}
 

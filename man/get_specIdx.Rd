@@ -12,7 +12,7 @@ get_specIdx(comp, coord)
 \item{coord}{array of coordinates as returned by \code{MALDIquant::coordinates()}.}
 }
 \value{
-
+list of spectra indicies.
 }
 \description{
 Internal helper function to extract spectra indices

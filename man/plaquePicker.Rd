@@ -4,7 +4,14 @@
 \alias{plaquePicker}
 \title{Separate stack of ion images into separated single-objects.}
 \usage{
-plaquePicker(ionImages, coord, method = c("tpoint", "geometric", "peak"), ...)
+plaquePicker(
+  ionImages,
+  coord,
+  method = c("tpoint", "geometric", "peak"),
+  binMatrix = NULL,
+  addIonImages = NULL,
+  ...
+)
 }
 \arguments{
 \item{ionImages}{array of ion images as returned by \code{MALDIquant::msiSlices()}.}
@@ -15,6 +22,13 @@ plaquePicker(ionImages, coord, method = c("tpoint", "geometric", "peak"), ...)
 If set to "peak" the threshold is set to 0 so each signal will be counted as valid.
 Make sure you set the tolerance for the ion images right
 and used actual peak data to generate the ion images.}
+
+\item{addIonImages}{array of ion images as returned by \code{MALDIquant::msiSlices()}.
+In contrast to \code{ionImages} these additional ion images will not be used for segmentation.
+The data from these ion images will still be included for the summary and successive data analysis.}
+
+\item{binMatirx}{binary matrix, if provided it overwrites \code{method} and is used to subset \code{ionImages}.
+This can be helpful if you want to segment one modality (e.g. lipid data) by another (e.g. peptide data).}
 }
 \value{
 A list, on the top level the list contains one entry per provided ion image with
