@@ -7,6 +7,11 @@
 #' list of spectra indicies.
 get_specIdx <- function(comp, coord) {
   maxComp_idx <- max(comp, na.rm=TRUE)
+  if(abs(maxComp_idx) == Inf) {
+    # if no clumps are detected return empty list
+    spectraIdx <- vector("list", 0)
+    return(spectraIdx)
+  }
 
   clumpPoints <- vector("list", maxComp_idx)
   # populate the list with pixels that correspont to CC ID
@@ -24,17 +29,20 @@ get_specIdx <- function(comp, coord) {
   spectraIdx <- vector("list", maxComp_idx)
   for(clump in 1:maxComp_idx) {
     numPx <- dim(clumpPoints[[clump]])[1]
-    pixelIdx <- vector("numeric", length = numPx)
+    specIdx <- vector("numeric", numPx)
     for(pixel in 1:numPx) {
       # assign MALDIquant spectra index to clump ID
-      pixelIdx[pixel] <-  which(
+
+      idx <- which(
         coord_x == as.numeric(x[clumpPoints[[clump]][pixel,1]])
         &
           coord_y == as.numeric(y[clumpPoints[[clump]][pixel,2]]))
 
+      specIdx[pixel] <- ifelse(is.null(idx), NA, idx)
     }
-    spectraIdx[[clump]] <- pixelIdx
-    names(spectraIdx[[clump]]) <- rep("spectraIdx", numPx)
+    spectraIdx[[clump]][["ID"]] <- rep(clump, numPx)
+    spectraIdx[[clump]][["spectraIdx"]] <- specIdx
+
   }
   return(spectraIdx)
 }
@@ -75,7 +83,7 @@ get_intensities <-   function(comp, ii) {
 #'                     This can be helpful if you want to segment one modality (e.g. lipid data) by another (e.g. peptide data).
 #' @param addIonImages array of ion images as returned by \code{MALDIquant::msiSlices()}.
 #'                     In contrast to \code{ionImages} these additional ion images will not be used for segmentation.
-#'                     The data from these ion images will still be included for the summary and sucessive data analysis.
+#'                     The data from these ion images will still be included for the summary and successive data analysis.
 #'
 #' @return
 #' A list, on the top level the list contains one entry per provided ion image with
@@ -119,8 +127,28 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
                 ncol = dim(ionImages[,,1])[2])
   # name cols and rows of uni
   # according to the original coordinate system in MALDIQuant object
-  rownames(uni) <- sort(unique(coord[,1])) # x
-  colnames(uni) <- sort(unique(coord[,2])) # y
+  nr <- nrow(uni)
+  nc <- ncol(uni)
+  if(nr > length(unique(coord[,1]))) {
+    warning("nrow(uni) > length(unique(coord[,1])) adding dummy coords!")
+    diffrn <- abs(nr - length(unique(coord[,1])))
+    maxrn <- max(unique(coord[,1]))
+    newrn <- c(sort(unique(coord[,1])), seq(from = (maxrn+1), to = (maxrn+diffrn), by = 1))
+    rownames(uni)<- newrn
+  } else {
+    rownames(uni) <- sort(unique(coord[,1]))[1:nr] # x
+  }
+
+  if(nc > length(unique(coord[,2]))) {
+    warning("nrow(uni) > length(unique(coord[,2])) adding dummy coords!")
+    diffcn <- abs(nc - length(unique(coord[,2])))
+    maxcn <- max(unique(coord[,2]))
+    newcn <- c(sort(unique(coord[,2])), seq(from = (maxcn+1), to = (maxcn+diffcn), by = 1))
+    colnames(uni)<- newcn
+  } else {
+    colnames(uni) <- sort(unique(coord[,2]))[1:nc] # y
+  }
+
   for(i in 1:length(mzValues)) {
     cat("processing", mzValues[i], i , "/", length(mzValues) ,"\n")
     # get threshold and perform binarization
@@ -170,8 +198,8 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
                                                direction = 8))
     # name cols and rows of conComp
     # according to the original coordinate system in MALDIQuant object
-    rownames(conComp) <- sort(unique(coord[,1])) # x
-    colnames(conComp) <- sort(unique(coord[,2])) # y
+    rownames(conComp) <- rownames(uni) # x
+    colnames(conComp) <- colnames(uni) # y
 
     resultList[[i]][["conComp"]] <- conComp
     resultList[[i]][["binMat"]] <- binMat

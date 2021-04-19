@@ -69,6 +69,14 @@ tpoint <- function(ints, breaks = 500, diagnosis = FALSE, plot = FALSE) {
   }
   tpoint = which.min(e1[M:L] + e2[M:L])
 
+  thresh <- bin_val_full[M+tpoint]
+
+  if(is.na(thresh) || thresh > max(ints, na.rm = TRUE)) {
+    warning("Is your distribution bi-modal? Threshold < then max intensity.
+            Setting threshold to max intensity.")
+    thresh <- max(ints, na.rm = TRUE)
+  }
+
   df_list <- list("hist" = hist,
                   "eValues" = tibble::tibble(
                     breaks = hist$breaks[-1],
@@ -79,7 +87,7 @@ tpoint <- function(ints, breaks = 500, diagnosis = FALSE, plot = FALSE) {
                   "res"= tibble::tibble(M = M,
                                         L = L,
                                         tpoint_bin = M+tpoint,
-                                        threshold = bin_val_full[M+tpoint]))
+                                        threshold = thresh))
 
   if(plot) {
     counts_df <- tibble(breaks = df_list$hist$breaks[-1], counts = df_list$hist$counts)
@@ -119,6 +127,6 @@ tpoint <- function(ints, breaks = 500, diagnosis = FALSE, plot = FALSE) {
 
 
 
-  return(bin_val_full[M+tpoint])
+  return(thresh)
 }
 
