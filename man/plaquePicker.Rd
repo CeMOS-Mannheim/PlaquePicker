@@ -8,6 +8,7 @@ plaquePicker(
   ionImages,
   coord,
   method = c("tpoint", "geometric", "peak"),
+  fixedThreshold = NULL,
   binMatrix = NULL,
   addIonImages = NULL,
   ...
@@ -22,6 +23,8 @@ plaquePicker(
 If set to "peak" the threshold is set to 0 so each signal will be counted as valid.
 Make sure you set the tolerance for the ion images right
 and used actual peak data to generate the ion images.}
+
+\item{fixedThreshold}{numeric, if not NULL (default) overwrites \code{method} and uses a fixed value as a threshold.}
 
 \item{addIonImages}{array of ion images as returned by \code{MALDIquant::msiSlices()}.
 In contrast to \code{ionImages} these additional ion images will not be used for segmentation.
