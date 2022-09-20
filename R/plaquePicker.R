@@ -99,7 +99,7 @@ get_intensities <-   function(comp, ii) {
 #'
 #' @examples
 #' pp <- plaquePicker(NLGF67w_mouse1_rep1, coord = NLGF67w_mouse1_rep1_coord)
-plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "peak"), binMatrix = NULL, addIonImages = NULL, ...) {
+plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "peak"), fixedThreshold = NULL, binMatrix = NULL, addIonImages = NULL, ...) {
   if(!is.null(binMatrix)) {
     # check if dimof ionImages and binMatrix match. Otherwise stop.
     if(!dim(ionImages[,,1])[1] == dim(binMatrix)[1] & !dim(ionImages[,,1])[2] == dim(binMatrix)[2]) {
@@ -109,6 +109,12 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
     method <- "binMat"
   } else {
     method <- match.arg(method)
+    if(!is.null(fixedThreshold)) {
+      if(!is.numeric(fixedThreshold)) {
+        stop("fixedThreshold must be numeric.\n")
+      }
+      method <- "fixedThreshold"
+    }
   }
 
   if(!is.null(addIonImages)) {
@@ -186,6 +192,15 @@ plaquePicker <- function(ionImages, coord, method = c("tpoint", "geometric", "pe
              cat("\n no threshold needed for mz", mzValues[i],"binMatrix used for segmentation\n")
              bin <- binMatrix
              threshold <- -Inf
+           },
+           "fixedThreshold" = {
+             threshold <- fixedThreshold
+             cat("\n threshold of mz", mzValues[i],"based on fixed thresholding = ", threshold, "\n")
+             bin <- ifelse(test = threshold < ints,
+                           yes = 1,
+                           no = ifelse(is.na(ints),
+                                       yes = NA,
+                                       no = 0))
            }
     )
 

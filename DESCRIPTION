@@ -1,7 +1,7 @@
 Package: PlaquePicker
 Type: Package
 Title: Single-object based analysis of MSI data
-Version: 0.7.0
+Version: 0.7.1
 Author: Thomas Enzlein 
 Maintainer: Thomas Enzlein <t.enzlein@hs-mannheim.de>
 Description: This package implements methods for single-object based analysis as described in Enzlein et. al. 2020. The main functionality is implemented in \code{plaquePicker} and seperates provided ion images (use \code{MALDIquant::misSlices} to extract them from a dataset) into single objects with a unique ID that then enable futher analysis. 
